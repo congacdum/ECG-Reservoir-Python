@@ -650,3 +650,43 @@ The local project is regression-clean and has a Vietnamese, team-leader-oriented
 
 ### Next Recommended Step
 Inspect the target GitHub repository history, initialize/link Git safely, commit the complete project, push without force, and verify the remote commit and file contents.
+
+## 2026-09-19 04:26
+
+### Goal
+Publish the complete verified ECG Reservoir Computing software and RTL project to the target GitHub repository and verify the remote contents.
+
+### Changes
+- Initialized the previously untracked project as a Git repository on branch `main`.
+- Added remote `origin` pointing to `https://github.com/congacdum/ECG-Reservoir-Python.git`.
+- Created commit `04d6a49d50cd3b08905ba8fbd0e9447e0f2176ca` with 180 project files, including source, dataset, outputs, golden vectors, RTL, testbenches, tests, reports, and Vietnamese README.
+- Pushed `main` normally without force-push.
+- Added the official published repository and commit fact to `PROJECT_KNOWLEDGE.md`.
+
+### Tests Executed
+- `git ls-remote https://github.com/congacdum/ECG-Reservoir-Python.git` before initialization: no refs returned.
+- `git push -u origin main`.
+- `git fetch origin`.
+- `git rev-parse HEAD` and `git rev-parse origin/main`.
+- `git ls-remote origin refs/heads/main`.
+- `git ls-tree -r --name-only origin/main`.
+
+### Results
+- Push succeeded as a new `main` branch.
+- Local HEAD and `origin/main` both resolve to `04d6a49d50cd3b08905ba8fbd0e9447e0f2176ca`.
+- Remote tree contains `README.md`, `PROJECT_KNOWLEDGE.md`, `CHANGE_LOG.md`, `requirements.txt`, `src/`, `rtl/`, and `tests/`, plus the complete audited project tree.
+- No force-push was used.
+
+### Failures / Limitations
+- GitHub CLI (`gh`) is not installed, so remote verification used Git transport and remote tree inspection.
+- Hardware synthesis, timing, resource, power, and board deployment remain outside this publishing task.
+
+### Files Changed
+- `PROJECT_KNOWLEDGE.md`
+- `CHANGE_LOG.md`
+
+### Current Project State
+The complete verified project is published on `origin/main`; this follow-up documentation commit records the final publication audit.
+
+### Next Recommended Step
+Use the published repository for team review; hardware synthesis remains the next engineering stage after a target FPGA is selected.

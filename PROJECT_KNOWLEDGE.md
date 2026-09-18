@@ -248,3 +248,11 @@ The project goal is a robust FPGA-ready classifier, not an open-ended architectu
 10. Implement RTL.
 11. Compare RTL sample-by-sample against Python hardware golden model.
 12. Synthesize in Vivado and report measured LUT/FF/BRAM/DSP/Fmax/power.
+
+## 13. Published repository
+
+The verified project was published to the official remote repository:
+
+`https://github.com/congacdum/ECG-Reservoir-Python`
+
+The published branch is `main`. The initial publication commit is `04d6a49d50cd3b08905ba8fbd0e9447e0f2176ca`.
