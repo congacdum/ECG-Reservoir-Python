@@ -1,0 +1,33 @@
+{
+  "backend": "numpy_float_reference",
+  "reservoir_edges": 403,
+  "validation": {
+    "n": 2594,
+    "accuracy": 0.9653045489591364,
+    "balanced_accuracy": 0.9601935411888032,
+    "precision": 0.9591611479028698,
+    "sensitivity_recall": 0.9425162689804772,
+    "specificity": 0.9778708133971292,
+    "f1": 0.9507658643326039,
+    "mcc": 0.9240677036187642,
+    "confusion_matrix": [
+      [
+        1635,
+        37
+      ],
+      [
+        53,
+        869
+      ]
+    ],
+    "tn": 1635,
+    "fp": 37,
+    "fn": 53,
+    "tp": 869,
+    "roc_auc": 0.9901867170390973,
+    "pr_auc": 0.9637772048704665,
+    "score_min": -1.8378323025844745,
+    "score_max": 2.347641994319388
+  },
+  "test_used_for_model_selection": false
+}

@@ -1,0 +1,22 @@
+{
+  "project": "ecg_reservoir_fpga",
+  "seed": 42,
+  "bias": false,
+  "input_bits": 12,
+  "input_fractional_bits": 10,
+  "membrane_bits": 16,
+  "spike_count_bits": 5,
+  "readout_weight_bits": 8,
+  "accumulator_bits": 20,
+  "validation_balanced_accuracy": 0.9614098226240023,
+  "readout_scale": 0.004590547034739383,
+  "neurons": 64,
+  "recurrent_edges": 403,
+  "w_in_encoding": {
+    "00": 0.5,
+    "01": 1.0,
+    "10": 2.0
+  },
+  "w_res_encoding": "sparse edge list; sign 0=+1, 1=-1",
+  "w_out_encoding": "signed INT8 two's-complement hex"
+}

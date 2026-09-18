@@ -1,0 +1,85 @@
+{
+  "backend": "brian2_exploratory_reference",
+  "batch_size": 64,
+  "train_seconds": 27.05409530000179,
+  "validation_seconds": 6.191309999998339,
+  "train_nonzero_spike_count_rate": 0.9991111410564724,
+  "validation_nonzero_spike_count_rate": 0.9985965208172706,
+  "train": {
+    "n": 12059,
+    "accuracy": 0.9545567625839622,
+    "balanced_accuracy": 0.9555596745549293,
+    "precision": 0.9157088122605364,
+    "sensitivity_recall": 0.9589332074581072,
+    "specificity": 0.9521861416517514,
+    "f1": 0.9368226884943509,
+    "mcc": 0.9019536510939149,
+    "confusion_matrix": [
+      [
+        7448,
+        374
+      ],
+      [
+        174,
+        4063
+      ]
+    ],
+    "tn": 7448,
+    "fp": 374,
+    "fn": 174,
+    "tp": 4063,
+    "roc_auc": 0.9899624383867461,
+    "pr_auc": 0.9784895561364395,
+    "score_min": -2.4678629244950283,
+    "score_max": 1.5874271646609641
+  },
+  "validation": {
+    "n": 2594,
+    "accuracy": 0.9545104086353122,
+    "balanced_accuracy": 0.9530366168823756,
+    "precision": 0.9258474576271186,
+    "sensitivity_recall": 0.9479392624728851,
+    "specificity": 0.9581339712918661,
+    "f1": 0.9367631296891747,
+    "mcc": 0.9014028543508836,
+    "confusion_matrix": [
+      [
+        1602,
+        70
+      ],
+      [
+        48,
+        874
+      ]
+    ],
+    "tn": 1602,
+    "fp": 70,
+    "fn": 48,
+    "tp": 874,
+    "roc_auc": 0.9878407534068854,
+    "pr_auc": 0.9808499928706708,
+    "score_min": -1.7883134648780588,
+    "score_max": 1.4862220999374285
+  },
+  "readout_fit_intercept": false,
+  "test_used_for_model_selection": false,
+  "fpga_golden_model": "src/hardware/hardware_model.py",
+  "audit": {
+    "sequence_length": 20,
+    "dt_ms": 1.0,
+    "leak_tau_ms": 8.0,
+    "input_scaling": "tau/integration_dt correction gives direct input current per Euler step",
+    "input_weight_mapping": "one fixed w_in value per neuron",
+    "threshold": 2.5,
+    "reset_value": 0.0,
+    "refractory_period": "none",
+    "recurrent_mapping": "w_res[destination, source] mapped source to destination",
+    "recurrent_gain": 0.0625,
+    "synaptic_delay_ms": 0.0,
+    "sample_state_isolation": "disjoint neuron blocks per batch",
+    "units": "dimensionless membrane/weights; milliseconds for dt/tau",
+    "deterministic": true,
+    "remaining_difference": "recurrent event-driven floating-point accumulation can diverge sparsely from vectorized NumPy recurrence"
+  },
+  "known_difference": "Brian2 event-driven floating-point recurrence can diverge from discrete NumPy recurrence; Brian2 is not the FPGA golden model."
+}

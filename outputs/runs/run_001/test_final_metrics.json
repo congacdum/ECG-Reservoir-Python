@@ -1,0 +1,30 @@
+{
+  "n": 2561,
+  "accuracy": 0.9703240921515033,
+  "balanced_accuracy": 0.9679954626478691,
+  "precision": 0.952,
+  "sensitivity_recall": 0.9607843137254902,
+  "specificity": 0.9752066115702479,
+  "f1": 0.9563719862227325,
+  "mcc": 0.9339101129353075,
+  "confusion_matrix": [
+    [
+      1652,
+      42
+    ],
+    [
+      34,
+      833
+    ]
+  ],
+  "tn": 1652,
+  "fp": 42,
+  "fn": 34,
+  "tp": 833,
+  "roc_auc": 0.9933389982147453,
+  "pr_auc": 0.9785456698530329,
+  "score_min": -380.0,
+  "score_max": 464.0,
+  "status": "FINAL_TEST_AFTER_ARCHITECTURE_LOCK",
+  "warning": "Do not tune architecture/hyperparameters using this result."
+}

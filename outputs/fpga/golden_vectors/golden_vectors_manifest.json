@@ -1,0 +1,253 @@
+{
+  "format_version": 1,
+  "model_sha256": "fad34b75150bc80f2c43ed8ffb302c29f446993122b9cb8f877ad4d5c3305b11",
+  "reservoir_seed": 42,
+  "sample_count": 8,
+  "sequence_length": 20,
+  "sample_ids": [
+    "train_0000",
+    "train_0001",
+    "train_0002",
+    "train_0003",
+    "validation_0000",
+    "validation_0001",
+    "validation_0002",
+    "validation_0003"
+  ],
+  "source_splits": [
+    "train",
+    "train",
+    "train",
+    "train",
+    "validation",
+    "validation",
+    "validation",
+    "validation"
+  ],
+  "fixed_point": {
+    "input": {
+      "bits": 12,
+      "fractional_bits": 10,
+      "signed": true
+    },
+    "membrane": {
+      "bits": 16,
+      "fractional_bits": 10,
+      "signed": true
+    },
+    "spike": {
+      "bits": 1,
+      "signed": false
+    },
+    "spike_count": {
+      "bits": 5,
+      "signed": false,
+      "range": [
+        0,
+        20
+      ]
+    },
+    "recurrent_weight": {
+      "values": [
+        -1,
+        0,
+        1
+      ]
+    },
+    "readout_weight": {
+      "bits": 8,
+      "signed": true
+    },
+    "readout_accumulator": {
+      "bits": 20,
+      "signed": true
+    },
+    "rounding": "numpy.rint (ties-to-even)",
+    "saturation": true
+  },
+  "no_bias": {
+    "reservoir_bias_current": false,
+    "readout_intercept": false,
+    "exported_bias": false
+  },
+  "model_parameters": {
+    "input_format": {
+      "bits": 12,
+      "fractional_bits": 10,
+      "signed": true
+    },
+    "membrane_bits": 16,
+    "membrane_fractional_bits": 10,
+    "threshold": 2.5,
+    "leak_shift": 3,
+    "recurrent_shift": 4,
+    "recurrent_accumulator_bits": 16,
+    "saturation": true
+  },
+  "files": {
+    "arrays": "golden_vectors.npz",
+    "inputs": "inputs_q12.mem",
+    "spike_counts": "spike_counts_5bit.mem",
+    "scores": "expected_scores_20bit.mem",
+    "classes": "expected_classes.mem",
+    "trace": "timestep_trace.csv"
+  },
+  "arrays": {
+    "input_quantized": {
+      "shape": [
+        8,
+        20
+      ],
+      "dtype": "int32",
+      "min": 455,
+      "max": 593
+    },
+    "membrane_before": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": 0,
+      "max": 2559
+    },
+    "input_contribution": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": 341,
+      "max": 1779
+    },
+    "recurrent_contribution": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": -192,
+      "max": 448
+    },
+    "recurrent_contribution_raw": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": -192,
+      "max": 448
+    },
+    "membrane_update_raw": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": 278,
+      "max": 3782
+    },
+    "membrane_after_update": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": 278,
+      "max": 3782
+    },
+    "threshold_result": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 1
+    },
+    "reset_membrane": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "int32",
+      "min": 0,
+      "max": 2559
+    },
+    "spike_count_state": {
+      "shape": [
+        8,
+        20,
+        64
+      ],
+      "dtype": "uint8",
+      "min": 0,
+      "max": 10
+    },
+    "spike_counts": {
+      "shape": [
+        8,
+        64
+      ],
+      "dtype": "uint8",
+      "min": 1,
+      "max": 10
+    },
+    "w_out_int8": {
+      "shape": [
+        64
+      ],
+      "dtype": "int8",
+      "min": -99,
+      "max": 127
+    },
+    "readout_accumulator_raw": {
+      "shape": [
+        8
+      ],
+      "dtype": "int32",
+      "min": -170,
+      "max": 284
+    },
+    "readout_accumulator": {
+      "shape": [
+        8
+      ],
+      "dtype": "int32",
+      "min": -170,
+      "max": 284
+    },
+    "signed_score": {
+      "shape": [
+        8
+      ],
+      "dtype": "int32",
+      "min": -170,
+      "max": 284
+    },
+    "predicted_class": {
+      "shape": [
+        8
+      ],
+      "dtype": "int64",
+      "min": 0,
+      "max": 1
+    },
+    "labels_debug": {
+      "shape": [
+        8
+      ],
+      "dtype": "int64",
+      "min": 0,
+      "max": 1
+    }
+  }
+}

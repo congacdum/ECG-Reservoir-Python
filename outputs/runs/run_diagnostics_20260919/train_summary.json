@@ -1,0 +1,70 @@
+{
+  "backend": "numpy_float_reference",
+  "reservoir_edges": 403,
+  "train": {
+    "n": 12059,
+    "accuracy": 0.9703126295712746,
+    "balanced_accuracy": 0.9681375919857615,
+    "precision": 0.9549612948627727,
+    "sensitivity_recall": 0.9608213358508378,
+    "specificity": 0.9754538481206853,
+    "f1": 0.9578823529411765,
+    "mcc": 0.9349708454936478,
+    "confusion_matrix": [
+      [
+        7630,
+        192
+      ],
+      [
+        166,
+        4071
+      ]
+    ],
+    "tn": 7630,
+    "fp": 192,
+    "fn": 166,
+    "tp": 4071,
+    "roc_auc": 0.9910866375630496,
+    "pr_auc": 0.965127161521298,
+    "score_min": -2.0003950826791925,
+    "score_max": 1.9590578946351753
+  },
+  "validation": {
+    "n": 2594,
+    "accuracy": 0.9653045489591364,
+    "balanced_accuracy": 0.9601935411888032,
+    "precision": 0.9591611479028698,
+    "sensitivity_recall": 0.9425162689804772,
+    "specificity": 0.9778708133971292,
+    "f1": 0.9507658643326039,
+    "mcc": 0.9240677036187642,
+    "confusion_matrix": [
+      [
+        1635,
+        37
+      ],
+      [
+        53,
+        869
+      ]
+    ],
+    "tn": 1635,
+    "fp": 37,
+    "fn": 53,
+    "tp": 869,
+    "roc_auc": 0.9901867170390973,
+    "pr_auc": 0.9637772048704665,
+    "score_min": -1.8378323025866874,
+    "score_max": 2.3476419943216085
+  },
+  "model_health": {
+    "train_balanced_accuracy": 0.9681375919857615,
+    "validation_balanced_accuracy": 0.9601935411888032,
+    "generalization_gap": 0.007944050796958368,
+    "overfitting_warning": false,
+    "underfitting_warning": false,
+    "overfitting_gap_threshold": 0.05,
+    "underfitting_balanced_accuracy_threshold": 0.6
+  },
+  "test_used_for_model_selection": false
+}

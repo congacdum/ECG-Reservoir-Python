@@ -1,0 +1,38 @@
+{
+  "data/raw/training_data_20_points_with_single_peak_hardneg.csv": {
+    "sha256": "b242e8f1cf83a8571a530fa92985f92875fe6fa1f0f42110eff59b89c24dcab0",
+    "bytes": 4059422
+  },
+  "data/splits/train.csv": {
+    "sha256": "33529252273f5208f2401eb0b3b9ce189bf2a5872cd8e9c8ae1db125cd9f2c1b",
+    "bytes": 2831672
+  },
+  "data/splits/val.csv": {
+    "sha256": "968b23dce39fef3812086bfa4564856112f96fd0866312887cc8f20337770058",
+    "bytes": 609223
+  },
+  "data/splits/test.csv": {
+    "sha256": "8e2a1a869f1c270d0fb303e6ecb92e30e9abe4b8ded028bc4c6e358b2e4f90e9",
+    "bytes": 601476
+  },
+  "outputs/runs/run_001/float_model.npz": {
+    "sha256": "e9b07ce41b4aa25c8e8aac5b3518f148dc9affc590f2814353220e427a7373d1",
+    "bytes": 1674
+  },
+  "outputs/runs/run_001/hardware_model.npz": {
+    "sha256": "0d2294ad5dad73fc1a6de9c87012d63584d2f14af46483f4385ff202f32c4e26",
+    "bytes": 2135
+  },
+  "outputs/runs/run_001/quantization_summary.json": {
+    "sha256": "e87b2b4569ce3c3ea09d30f6f32cafd3ca07c81213356ffd748554b85239ea7f",
+    "bytes": 1458
+  },
+  "outputs/runs/run_001/test_final_metrics.json": {
+    "sha256": "7342a79f78bab06002af087c3db69f7e48d36c66cf2ad7f65e3d955dc8f5d76f",
+    "bytes": 634
+  },
+  "configs/default.yaml": {
+    "sha256": "1eee05f5b9b94c45b804379aa560d430588d7ffdfd23eaa5debf029d2f039aab",
+    "bytes": 1329
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "raw": {
+    "rows": 17214,
+    "groups": 9094,
+    "class_rows": {
+      "0": 11188,
+      "1": 6026
+    },
+    "class_groups": {
+      "0": 8396,
+      "1": 698
+    },
+    "sequence_length": 20,
+    "new_len_values": [
+      20
+    ]
+  },
+  "splits": {
+    "train": {
+      "rows": 12059,
+      "groups": 6365,
+      "class_rows": {
+        "0": 7822,
+        "1": 4237
+      },
+      "class_groups": {
+        "0": 5876,
+        "1": 489
+      },
+      "sequence_length": 20,
+      "new_len_values": [
+        20
+      ]
+    },
+    "val": {
+      "rows": 2594,
+      "groups": 1364,
+      "class_rows": {
+        "0": 1672,
+        "1": 922
+      },
+      "class_groups": {
+        "0": 1260,
+        "1": 104
+      },
+      "sequence_length": 20,
+      "new_len_values": [
+        20
+      ]
+    },
+    "test": {
+      "rows": 2561,
+      "groups": 1365,
+      "class_rows": {
+        "0": 1694,
+        "1": 867
+      },
+      "class_groups": {
+        "0": 1260,
+        "1": 105
+      },
+      "sequence_length": 20,
+      "new_len_values": [
+        20
+      ]
+    }
+  },
+  "policy": "group-wise by original_index; exact waveform overlap checked",
+  "sha256": {
+    "raw": "b242e8f1cf83a8571a530fa92985f92875fe6fa1f0f42110eff59b89c24dcab0",
+    "train": "33529252273f5208f2401eb0b3b9ce189bf2a5872cd8e9c8ae1db125cd9f2c1b",
+    "val": "968b23dce39fef3812086bfa4564856112f96fd0866312887cc8f20337770058",
+    "test": "8e2a1a869f1c270d0fb303e6ecb92e30e9abe4b8ded028bc4c6e358b2e4f90e9"
+  }
+}

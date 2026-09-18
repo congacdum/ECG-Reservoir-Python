@@ -1,0 +1,67 @@
+project:
+  name: ecg_reservoir_fpga
+  seed: 42
+
+data:
+  raw_file: data/raw/training_data_20_points_with_single_peak_hardneg.csv
+  sequence_length: 20
+  group_column: original_index
+  label_column: finalLabel
+  value_column: value_sequence
+
+split:
+  train: 0.70
+  validation: 0.15
+  test: 0.15
+  random_state: 42
+
+reservoir:
+  backend: numpy
+  neurons: 64
+  connectivity: 0.10
+  inhibitory_fraction: 0.20
+  input_weight_values: [0.5, 1.0, 2.0]
+  input_weight_probabilities: [0.25, 0.50, 0.25]
+  leak_numerator: 7
+  leak_denominator: 8
+  input_gain_numerator: 3
+  input_gain_denominator: 2
+  recurrent_gain_numerator: 1
+  recurrent_gain_denominator: 16
+  threshold: 2.5
+  reset_value: 0.0
+  bias: false
+  state_type: spike_count
+
+readout:
+  type: ridge
+  alpha: 100.0
+  fit_intercept: false
+  class_balanced_sample_weight: true
+  output_dim: 1
+  decision_threshold: 0.0
+
+diagnostics:
+  overfitting_gap_threshold: 0.05
+  underfitting_balanced_accuracy_threshold: 0.60
+
+hardware:
+  input_bits: 12
+  input_fractional_bits: 10
+  membrane_bits: 16
+  membrane_fractional_bits: 10
+  spike_bits: 1
+  spike_count_bits: 5
+  recurrent_accumulator_bits: 16
+  recurrent_weight_bits: 2
+  recurrent_weight_values: [-1, 0, 1]
+  readout_weight_bits: 8
+  accumulator_bits: 20
+  saturation: true
+  target_physical_lif_pes: 1
+
+success_criteria:
+  primary_metric: balanced_accuracy
+  minimum_balanced_accuracy: 0.85
+  preferred_balanced_accuracy: 0.90
+  max_quantization_drop: 0.01
