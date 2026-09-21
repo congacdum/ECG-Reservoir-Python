@@ -256,3 +256,19 @@ The verified project was published to the official remote repository:
 `https://github.com/congacdum/ECG-Reservoir-Python`
 
 The published branch is `main`. The initial publication commit is `04d6a49d50cd3b08905ba8fbd0e9447e0f2176ca`.
+
+## 14. Scientific analysis audit — 2026-09-21
+
+A train/validation-only analysis pass was completed without changing the locked model or RTL.
+
+Measured evidence:
+- RAW20 linear baselines: validation BA 0.828203–0.837068.
+- Decision Tree depth 5 on RAW20: validation BA 0.994166.
+- HistGradientBoosting: validation BA 0.997289 on RAW20 and 0.998915 on RAW20_DIFF19.
+- Recurrence ablation with retrained readout: Wres ON 0.958323 versus Wres=0 0.674066.
+- Locked spike-count feature SVD: 11/24/50 components for 90%/95%/99% variance.
+- Ten-seed validation BA: mean 0.962125, standard deviation 0.007437, range 0.953108–0.973564.
+- Robustness evidence shows sensitivity to DC offset and gain scaling; small Gaussian noise is less damaging.
+- Expanded integrated RTL verification passed 64 validation-only samples with zero score/class mismatches.
+
+These results are evidence reports, not a model-v2 selection. The locked architecture, seed, graph, golden model and RTL remain unchanged. Final test was not used.

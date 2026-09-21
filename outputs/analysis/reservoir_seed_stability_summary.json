@@ -1,0 +1,20 @@
+{
+  "seed_count": 10,
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "test_used": false,
+  "val_balanced_accuracy_mean": 0.9621253204496154,
+  "val_balanced_accuracy_std": 0.0074366264526658414,
+  "val_balanced_accuracy_min": 0.9531079720599072,
+  "val_balanced_accuracy_max": 0.973563555407944
+}

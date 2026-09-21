@@ -1,0 +1,5 @@
+train_balanced_accuracy,val_balanced_accuracy,train_accuracy,val_accuracy,neurons,edge_count,feature_dimension_95pct,method
+0.9206533625467815,0.9211862603659613,0.9142549133427316,0.9159599074787972,8,7,,prefix subset of locked graph; exploratory only
+0.9101897530412789,0.9095235809401239,0.8999087818227051,0.9009252120277563,16,20,,prefix subset of locked graph; exploratory only
+0.9080216912689208,0.9110298238694745,0.9085330458578655,0.9113338473400154,32,94,,prefix subset of locked graph; exploratory only
+0.9680195839612159,0.9583233868540411,0.9702297039555519,0.964148033924441,64,403,24,prefix subset of locked graph; exploratory only

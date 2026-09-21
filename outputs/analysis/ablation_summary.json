@@ -1,0 +1,34 @@
+{
+  "test_used": false,
+  "recurrence_ablation": [
+    {
+      "recurrence": "ON_locked_artifact",
+      "train_balanced_accuracy": 0.9680195839612159,
+      "val_balanced_accuracy": 0.9583233868540411,
+      "train_accuracy": 0.9702297039555519,
+      "val_accuracy": 0.964148033924441
+    },
+    {
+      "recurrence": "OFF_Wres_zero",
+      "train_balanced_accuracy": 0.7064856950799374,
+      "val_balanced_accuracy": 0.6740664148045128,
+      "train_accuracy": 0.6799900489261133,
+      "val_accuracy": 0.6572860447185813
+    }
+  ],
+  "svd_targets": [
+    {
+      "target_explained_variance": 0.9,
+      "components": 11
+    },
+    {
+      "target_explained_variance": 0.95,
+      "components": 24
+    },
+    {
+      "target_explained_variance": 0.99,
+      "components": 50
+    }
+  ],
+  "size_sweep_method": "prefix subset of locked graph, not used to change locked N"
+}

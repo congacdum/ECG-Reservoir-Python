@@ -1,0 +1,17 @@
+﻿# Environment reference
+
+Captured: 2026-09-21
+
+Python and packages:
+- Python: captured from the active interpreter during analysis.
+- NumPy, pandas, scikit-learn, matplotlib, PyYAML, pytest and Brian2: available through requirements.txt.
+- Exact package details can be regenerated with: python -m pip freeze
+
+RTL tools:
+- Icarus Verilog 13.0: available and used.
+- Vivado: unavailable.
+- Yosys: unavailable.
+- Verilator: unavailable.
+
+Synthesis/resource/timing results are therefore not claimed.
+

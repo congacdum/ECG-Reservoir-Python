@@ -150,3 +150,14 @@ Readout integration, synthesis/place-and-route, resource/Fmax/power measurement,
 - Full Python suite after Phase 4: **29 passed**; `compileall` passed.
 - No sealed test data was used for vector generation or RTL development.
 - Synthesis/place-and-route, LUT/FF/BRAM/DSP, Fmax, power, and board deployment remain unexecuted and unclaimed.
+
+## Scientific analysis audit — 2026-09-21
+- Added train/validation-only baseline, dataset, recurrence, SVD, seed, and robustness analyses under outputs/analysis.
+- Baseline validation BA: linear RAW20 0.828203–0.837068; Decision Tree depth 5 0.994166; HistGradientBoosting 0.997289 RAW20 and 0.998915 RAW20_DIFF19; locked fixed INT8 reservoir 0.961410.
+- Recurrence ablation with retrained readout: Wres ON 0.958323; Wres=0 0.674066.
+- SVD components for 90/95/99% variance: 11/24/50.
+- Ten-seed validation BA mean/std/min/max: 0.962125/0.007437/0.953108/0.973564.
+- Robustness shows strong DC/gain sensitivity and milder small-noise sensitivity.
+- Expanded RTL classifier verification: 64 validation-only samples, zero mismatches.
+- Python suite after analysis additions: 30 passed; compileall passed.
+- Vivado, Yosys and Verilator unavailable; synthesis and RTL optimization were not claimed.

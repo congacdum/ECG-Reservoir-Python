@@ -1,0 +1,8 @@
+{
+  "clean_fixed_int8_balanced_accuracy": 0.9614098226240023,
+  "clean_float_balanced_accuracy": 0.9607916273132051,
+  "clean_fixed_int8_accuracy": 0.9653045489591364,
+  "clean_float_accuracy": 0.9660755589822668,
+  "test_used": false,
+  "interpretation": "sensitivity evidence only; no architecture was changed"
+}

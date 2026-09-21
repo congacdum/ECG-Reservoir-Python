@@ -455,3 +455,91 @@ Quy trình tiếp theo:
 - `outputs/runs/run_brian2_20260919/`: Brian2 exploratory run.
 
 Project này không đưa ra clinical-generalization claim. Mọi metric trong README đều lấy từ artifact đã lưu trong repository.
+
+
+## 25. Baselines
+
+Phân tích baseline mới chỉ dùng train/validation:
+
+| Model/feature | Validation Balanced Accuracy |
+|---|---:|
+| LogisticRegression / RAW20 | 0.837068 |
+| LinearSVC / RAW20 | 0.829455 |
+| RidgeClassifier / RAW20 | 0.828203 |
+| DecisionTree depth 5 / RAW20 | 0.994166 |
+| HistGradientBoosting / RAW20 | 0.997289 |
+| HistGradientBoosting / RAW20_DIFF19 | 0.998915 |
+| Locked fixed-point + INT8 reservoir | 0.961410 |
+
+Kết quả cho thấy reservoir tốt hơn các baseline linear, nhưng tree/HistGradientBoosting hiện cao hơn rõ rệt trên dataset này. Đây là evidence về khả năng phân tách morphology/artifact; chưa đủ để kết luận data leakage.
+
+Chi tiết nằm tại outputs/analysis/baseline_metrics.csv và outputs/analysis/baseline_summary.md.
+
+## 26. Ablation và stability
+
+Recurrence ablation với readout được train lại:
+
+| Cấu hình | Validation Balanced Accuracy |
+|---|---:|
+| Wres ON | 0.958323 |
+| Wres = 0 | 0.674066 |
+
+Delta ON so với OFF là +0.284257, cho thấy recurrence có đóng góp đo được.
+
+SVD trên train spike-count features:
+
+- 90% variance: 11 components.
+- 95% variance: 24 components.
+- 99% variance: 50 components.
+
+Prefix subset exploratory của locked graph đạt:
+
+- N=8: 0.921186.
+- N=16: 0.909524.
+- N=32: 0.911030.
+- N=64: 0.958323.
+
+Đây không phải graph sweep được regenerate độc lập, nên không dùng để thay đổi locked N=64.
+
+10 seed deterministic có validation BA mean 0.962125, standard deviation 0.007437, min/max 0.953108/0.973564. Final test không được dùng.
+
+## 27. Robustness
+
+Robustness được đo trên validation bằng locked model, không tune architecture:
+
+- DC offset ±0.01 đã làm BA thay đổi đáng kể.
+- Gain 0.9 và 1.1 làm BA giảm mạnh.
+- Gaussian noise sigma 0.005 chỉ làm giảm nhẹ.
+- Gaussian noise sigma 0.02 đưa fixed INT8 BA xuống khoảng 0.924.
+
+Đây là sensitivity evidence. Candidate model-v2 như DC blocker, mean removal, gain normalization hoặc first-difference cần được đánh giá riêng; chưa có model-v2 nào được chọn.
+
+Artifact: outputs/analysis/robustness_metrics.csv.
+
+## 28. Synthesis
+
+Vivado, Yosys và Verilator không có trong môi trường audit hiện tại. Vì vậy chưa có số đo LUT, FF, BRAM, DSP, WNS, Fmax, power hoặc energy/classification.
+
+Không claim synthesis hoặc board deployment. Báo cáo limitation nằm tại outputs/synthesis/baseline_synthesis_summary.md.
+
+## 29. RTL optimization
+
+Không tối ưu RTL trong phase này vì chưa có baseline synthesis thực tế để xác định bottleneck. RTL Phase 1–4 được giữ nguyên và tiếp tục pass Icarus Verilog.
+
+## 30. Expanded RTL verification
+
+Ngoài 8 golden train/validation samples ban đầu, integrated classifier đã được chạy trên 64 validation-only samples:
+
+- 64 samples;
+- score và class exact;
+- zero mismatch;
+- latency 1386 cycles/sample;
+- final test không được đọc.
+
+Runner: rtl/scripts/run_validation_classifier_tb.py.
+
+
+
+## 31. License
+
+Repository hiện chưa có tệp LICENSE; chủ sở hữu cần chọn và thêm giấy phép phù hợp trước khi phân phối công khai.

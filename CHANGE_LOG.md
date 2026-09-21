@@ -690,3 +690,53 @@ The complete verified project is published on `origin/main`; this follow-up docu
 
 ### Next Recommended Step
 Use the published repository for team review; hardware synthesis remains the next engineering stage after a target FPGA is selected.
+
+## 2026-09-21 20:17
+
+### Goal
+Complete the staged scientific audit after review while preserving the locked model and RTL.
+
+### Changes
+- Added train/validation-only scripts 08–12 for baseline, dataset, recurrence/SVD, robustness, and seed-stability analysis.
+- Added the expanded validation-only RTL classifier runner and analysis artifact tests.
+- Added analysis outputs, exact environment lock, synthesis availability report, RTL optimization status, CI workflow, and Vietnamese README sections.
+- Recorded established audit facts in PROJECT_KNOWLEDGE.md.
+
+### Tests Executed
+- All analysis scripts 08–12.
+- `python -m compileall scripts tests`.
+- `python -m pytest -q`.
+- Existing LIF, recurrent, controller, readout, and classifier RTL runners.
+- Expanded 64-sample validation-only classifier runner.
+
+### Results
+- Python suite: 30 passed; compileall passed.
+- Existing RTL regressions: zero mismatches.
+- Expanded RTL validation: 64 samples, zero score/class mismatches.
+- Vivado, Yosys, and Verilator were unavailable; no synthesis/resource/timing/power values were fabricated.
+
+### Failures / Limitations
+- The initial exhaustive threshold scan in dataset analysis was too slow, so it was stopped and replaced with a deterministic 257-quantile grid; no conclusion relied on the incomplete run.
+- Physical synthesis remains pending because the tools are unavailable.
+
+### Files Changed
+- `scripts/08_baseline_analysis.py`
+- `scripts/09_dataset_analysis.py`
+- `scripts/10_reservoir_ablation.py`
+- `scripts/11_robustness_analysis.py`
+- `scripts/12_seed_stability.py`
+- `scripts/analysis_common.py`
+- `rtl/scripts/run_validation_classifier_tb.py`
+- `tests/test_analysis_artifacts.py`
+- `.github/workflows/ci.yml`
+- `outputs/analysis/`
+- `outputs/synthesis/`
+- `README.md`
+- `PROJECT_KNOWLEDGE.md`
+- `CHANGE_LOG.md`
+
+### Current Project State
+The locked Python golden model, graph, parameters, RTL, and final-test artifacts are unchanged. Analysis used train and validation only.
+
+### Next Recommended Step
+Install/use the selected FPGA vendor synthesis flow, record measured reports, then decide whether RTL optimization is justified by a real bottleneck.

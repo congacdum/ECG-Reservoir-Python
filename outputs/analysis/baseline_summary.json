@@ -1,0 +1,39 @@
+{
+  "metric": "validation_balanced_accuracy",
+  "best_row": {
+    "model": "HistGradientBoosting",
+    "feature_set": "RAW20_DIFF19",
+    "train_balanced_accuracy": 1.0,
+    "val_balanced_accuracy": 0.9989154013015185,
+    "train_accuracy": 1.0,
+    "val_accuracy": 0.9992289899768697,
+    "train_roc_auc": 1.0,
+    "val_roc_auc": 1.0,
+    "notes": "class-balanced weights"
+  },
+  "reservoir_rows": [
+    {
+      "model": "reservoir_float_spike_count",
+      "feature_set": "64 spike-count features",
+      "train_balanced_accuracy": 0.9681375919857615,
+      "val_balanced_accuracy": 0.9601935411888032,
+      "train_accuracy": 0.9703126295712746,
+      "val_accuracy": 0.9653045489591364,
+      "train_roc_auc": 0.9910866375630495,
+      "val_roc_auc": 0.9901867170390973,
+      "notes": "locked artifact; no test data used"
+    },
+    {
+      "model": "reservoir_fixed_int8_spike_count",
+      "feature_set": "64 spike-count features",
+      "train_balanced_accuracy": 0.9697847408111095,
+      "val_balanced_accuracy": 0.9614098226240023,
+      "train_accuracy": 0.9700638527241064,
+      "val_accuracy": 0.9653045489591364,
+      "train_roc_auc": 0.9911537280367333,
+      "val_roc_auc": 0.9905311679415458,
+      "notes": "locked artifact; no test data used"
+    }
+  ],
+  "test_used": false
+}

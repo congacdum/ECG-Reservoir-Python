@@ -1,0 +1,33 @@
+﻿name: Project verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m compileall .
+      - run: python -m pytest -q
+
+  rtl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y iverilog
+      - run: python -m pip install -r requirements.txt
+      - run: python rtl/scripts/run_lif_tb.py
+      - run: python rtl/scripts/run_recurrent_tb.py
+      - run: python rtl/scripts/run_controller_tb.py
+      - run: python rtl/scripts/run_readout_tb.py
+      - run: python rtl/scripts/run_classifier_tb.py
+
