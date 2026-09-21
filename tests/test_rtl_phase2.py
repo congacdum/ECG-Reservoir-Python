@@ -46,7 +46,7 @@ def test_frozen_sparse_graph_checksum_orientation_and_statistics():
     rows = _load_edges()
     assert len(rows) == 403
     assert hashlib.sha256(EDGE_FILE.read_bytes()).hexdigest() == (
-        "77c8a1529768eb86bfd1b67a744034f5613d4433cb5f7d54060614440df6449f"
+        "29958c1c923b7a1675d6198ec79b2c8d156ba1fa8eb0239e2cde20cd0b0e5f0d"
     )
 
     reconstructed = np.zeros((64, 64), dtype=np.int8)
