@@ -26,9 +26,7 @@ module reservoir_step #(
         .recurrent_contribution(recurrent_contribution_16)
     );
 
-    always_comb begin
-        recurrent_contribution = {{16{recurrent_contribution_16[15]}}, recurrent_contribution_16};
-    end
+    assign recurrent_contribution = {{16{recurrent_contribution_16[15]}}, recurrent_contribution_16};
 
     lif_pe lif (
         .membrane_in(membrane_in),

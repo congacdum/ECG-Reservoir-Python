@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -21,6 +22,8 @@ EDGE_FILE = ROOT / "outputs" / "fpga" / "weights" / "w_res_edges.csv"
 NEURONS = 64
 RECURRENT_UNIT = 1 << 6
 RECURRENT_BITS = 16
+SMOKE_SUBPROCESS_TIMEOUT_SECONDS = 60
+FULL_SUBPROCESS_TIMEOUT_SECONDS = 300
 
 
 def unsigned_hex(value: int, bits: int) -> str:
@@ -283,6 +286,13 @@ def write_step_memories(vectors) -> None:
         write_mem(MEM_DIR / f"{name}.mem", [row[index] for row in vectors], bits)
 
 
+def format_command(command: list[str]) -> str:
+    return shlex.join(str(part) for part in command)
+
+def ascii_path(path: Path) -> str:
+    return str(path).encode("ascii", "backslashreplace").decode("ascii")
+
+
 def compile_and_run(
     iverilog: str,
     vvp: str,
@@ -291,6 +301,8 @@ def compile_and_run(
     sources: list[str],
     output_name: str,
     phase: str,
+    num_vectors: int,
+    timeout_seconds: int,
 ) -> tuple[int, str, float, float]:
     with tempfile.TemporaryDirectory(prefix="recurrent_tb_") as temp_dir:
         sim_path = Path(temp_dir) / output_name
@@ -304,22 +316,61 @@ def compile_and_run(
             str(sim_path),
             *sources,
         ]
+        simulation_cmd = [vvp, str(sim_path)]
+        print(f"[recurrent] {phase} top={top}", flush=True)
+        print(f"[recurrent] {phase} NUM_VECTORS={num_vectors}", flush=True)
+        print(f"[recurrent] {phase} cwd={ascii_path(ROOT)}", flush=True)
+        print(f"[recurrent] {phase} output executable={ascii_path(sim_path)}", flush=True)
+        print(f"[recurrent] {phase} source files:", flush=True)
+        for source in sources:
+            print(f"[recurrent]   {source}", flush=True)
+        print(f"[recurrent] {phase} compile command: {format_command(compile_cmd)}", flush=True)
         print(f"[recurrent] {phase} compile start", flush=True)
         compile_started = time.perf_counter()
-        compiled = subprocess.run(compile_cmd, cwd=ROOT, text=True, capture_output=True)
+        try:
+            compiled = subprocess.run(
+                compile_cmd,
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                timeout=timeout_seconds,
+            )
+        except subprocess.TimeoutExpired as exc:
+            partial = "".join(part for part in (exc.stdout, exc.stderr) if part)
+            if partial:
+                print(partial, end="", flush=True)
+            message = f"{phase.capitalize()} compile timeout after {timeout_seconds}s"
+            print(f"[recurrent] {message}", flush=True)
+            raise RuntimeError(message) from exc
         compile_seconds = time.perf_counter() - compile_started
         print(f"[recurrent] {phase} compile finished in {compile_seconds:.3f}s", flush=True)
         if compiled.returncode != 0:
             return compiled.returncode, compiled.stdout + compiled.stderr, compile_seconds, 0.0
+        print(f"[recurrent] {phase} vvp command: {format_command(simulation_cmd)}", flush=True)
         print(f"[recurrent] {phase} simulation start", flush=True)
         simulation_started = time.perf_counter()
-        executed = subprocess.run([vvp, str(sim_path)], cwd=ROOT, text=True, capture_output=True)
+        try:
+            executed = subprocess.run(
+                simulation_cmd,
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                timeout=timeout_seconds,
+            )
+        except subprocess.TimeoutExpired as exc:
+            partial = "".join(part for part in (exc.stdout, exc.stderr) if part)
+            if partial:
+                print(partial, end="", flush=True)
+            message = f"{phase.capitalize()} simulation timeout after {timeout_seconds}s"
+            print(f"[recurrent] {message}", flush=True)
+            raise RuntimeError(message) from exc
         simulation_seconds = time.perf_counter() - simulation_started
         print(f"[recurrent] {phase} simulation finished in {simulation_seconds:.3f}s", flush=True)
         return executed.returncode, executed.stdout + executed.stderr, compile_seconds, simulation_seconds
 
-
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     total_started = time.perf_counter()
     parser = argparse.ArgumentParser(description="Run the recurrent RTL regression")
     parser.add_argument("--smoke", action="store_true", help="use a small deterministic reservoir-step subset")
@@ -331,7 +382,9 @@ def main() -> int:
         return 2
 
     mode = "smoke" if args.smoke else "full"
+    timeout_seconds = SMOKE_SUBPROCESS_TIMEOUT_SECONDS if args.smoke else FULL_SUBPROCESS_TIMEOUT_SECONDS
     print(f"[recurrent] mode={mode}", flush=True)
+    print(f"[recurrent] subprocess timeout={timeout_seconds}s", flush=True)
     generation_started = time.perf_counter()
     edges, incoming = load_edges()
     unit_vectors = build_unit_vectors(incoming)
@@ -368,6 +421,8 @@ def main() -> int:
         ],
         "tb_sparse_recurrent_engine.vvp",
         "unit",
+        num_vectors=len(unit_vectors),
+        timeout_seconds=timeout_seconds,
     )
     unit_compare_started = time.perf_counter()
     print(unit_output, end="")
@@ -391,6 +446,8 @@ def main() -> int:
         ],
         "tb_reservoir_step.vvp",
         "golden",
+        num_vectors=len(step_vectors),
+        timeout_seconds=timeout_seconds,
     )
     print("[recurrent] golden parsing start", flush=True)
     comparison_started = time.perf_counter()
