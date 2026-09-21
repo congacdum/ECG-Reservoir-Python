@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import platform
 import shlex
 import subprocess
 import sys
@@ -289,8 +290,23 @@ def write_step_memories(vectors) -> None:
 def format_command(command: list[str]) -> str:
     return shlex.join(str(part) for part in command)
 
+
 def ascii_path(path: Path) -> str:
     return str(path).encode("ascii", "backslashreplace").decode("ascii")
+
+
+def vvp_version(vvp: str) -> str:
+    result = subprocess.run(
+        [vvp, "-V"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    combined = (result.stdout + "\n" + result.stderr).splitlines()
+    for line in combined:
+        if "runtime version" in line:
+            return line.strip()
+    return "version unavailable"
 
 
 def compile_and_run(
@@ -393,7 +409,10 @@ def main() -> int:
     write_unit_memories(unit_vectors)
     unit_generation_seconds = time.perf_counter() - generation_started
 
-    print(f"Simulator: {simulator}; {simulator_version(iverilog)}")
+    print(f"Python: {sys.version.split()[0]}", flush=True)
+    print(f"OS: {platform.platform()}", flush=True)
+    print(f"Simulator: {simulator}; {simulator_version(iverilog)}", flush=True)
+    print(f"VVP: {vvp_version(vvp)}", flush=True)
     print(f"Graph edges: {len(edges)}; unit vectors: {len(unit_vectors)}")
     print(f"[recurrent] unit generation finished in {unit_generation_seconds:.3f}s", flush=True)
 

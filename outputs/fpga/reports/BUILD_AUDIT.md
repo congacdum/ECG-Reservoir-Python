@@ -179,3 +179,12 @@ Readout integration, synthesis/place-and-route, resource/Fmax/power measurement,
 - Full recurrent regression remains unchanged: 10,240 vectors and 71,680 reservoir-step comparisons, zero mismatches; local runtime 3.730 s.
 - Added phase timing logs for generation, Icarus compile, vvp simulation, comparison, and per-runner smoke elapsed time.
 - RTL datapath, recurrent graph, golden vectors, model, expected outputs, and scientific behavior were not changed.
+
+## Icarus compatibility audit — 2026-09-22
+
+- A/B used the same repository source, python rtl/scripts/run_recurrent_tb.py --smoke, and recurrent smoke workload.
+- Icarus 12.0 (iverilog 12.0-3, Ubuntu apt): N=1 and N=8 compiled, but VVP hung; the runner reported Golden simulation timeout after 60s. vvp -v showed 2 time steps and 102,860 scheduler events in about 10 s with no PASS.
+- Icarus 13.0 stable (v13_0, official commit 30a7d1a11b7586aa0fc868e509f04f514effc0ad): local N=1 and N=8 passed, and the recurrent smoke passed with zero mismatches.
+- Interpretation: this is a reproducible simulator-version runtime pathology in Icarus 12 for the unchanged workload. It is not evidence of a functional RTL/model mismatch.
+- Production .github/workflows/ci.yml and .github/workflows/rtl-full.yml build and verify the exact Icarus 13.0 tag. The temporary .github/workflows/rtl-simulator-compat.yml retains the 12/13 matrix for future diagnostics.
+- No RTL, model, graph, fixed-point format, golden vector, metric or scientific behavior changed. Final ML test was not run.

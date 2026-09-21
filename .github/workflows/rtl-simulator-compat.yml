@@ -1,0 +1,52 @@
+name: RTL simulator compatibility
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compatibility:
+    name: Icarus ${{ matrix.simulator }} recurrent smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        simulator: [icarus12, icarus13]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements-lock.txt
+      - name: Install selected Icarus
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          if [[ "${{ matrix.simulator }}" == "icarus12" ]]; then
+            sudo apt-get install -y iverilog
+          else
+            sudo apt-get install -y autoconf bison flex g++ gcc git gperf make
+            src_dir="$RUNNER_TEMP/iverilog-v13_0"
+            prefix="$RUNNER_TEMP/iverilog-install"
+            git clone --depth 1 --branch v13_0 https://github.com/steveicarus/iverilog.git "$src_dir"
+            test "$(git -C "$src_dir" rev-parse HEAD)" = "30a7d1a11b7586aa0fc868e509f04f514effc0ad"
+            cd "$src_dir"
+            autoconf
+            ./configure --prefix="$prefix"
+            make -j"$(nproc)"
+            make install
+            echo "$prefix/bin" >> "$GITHUB_PATH"
+          fi
+      - name: Verify environment and simulator
+        run: |
+          python --version
+          uname -a
+          iverilog -V
+          vvp -V
+      - name: Run recurrent smoke compatibility test
+        shell: bash
+        run: timeout 90s python rtl/scripts/run_recurrent_tb.py --smoke

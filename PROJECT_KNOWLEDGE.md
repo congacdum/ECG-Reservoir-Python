@@ -290,3 +290,14 @@ The verified CI environment is now:
 Clean-environment verification passed import smoke, pip check, compileall and 30 Python tests. No model, numerical result, RTL behavior, golden artifact or final test was changed or rerun.
 
 Push/PR CI runs Python verification and deterministic RTL smoke. Full RTL regression is preserved in a separate manual/nightly workflow.
+
+## 16. Icarus simulator compatibility audit — 2026-09-22
+
+The same repository source, recurrent smoke runner, and smoke workload were tested with both simulator versions.
+
+- Local Windows: Icarus Verilog 13.0 stable (v13_0), VVP 13.0; recurrent smoke passed. N=1 passed 7 comparisons and N=8 passed 56 comparisons. Representative local compile/simulation times were about 0.12–0.15 s / 0.04 s.
+- WSL Ubuntu: apt Icarus Verilog 12.0 (iverilog 12.0-3); N=1 and N=8 compiled in about 0.03 s but VVP did not complete within 15 s. The same runner smoke reached its 60 s timeout in tb_reservoir_step.vvp golden simulation.
+- Icarus 12 vvp -v showed only two simulation time steps and 102,860 scheduler events in about 10 s, with no PASS output. This is diagnostic evidence of a version-specific scheduler/runtime pathology.
+- The official Icarus 13.0 tag was independently verified as commit 30a7d1a11b7586aa0fc868e509f04f514effc0ad. Production workflows build that exact tag and log both iverilog -V and vvp -V.
+
+Conclusion: the A/B result supports an Icarus 12-specific runtime pathology for this unchanged workload; it does not justify redesigning RTL. Production CI is pinned to exact Icarus 13.0, while .github/workflows/rtl-simulator-compat.yml preserves a temporary 12/13 diagnostic matrix. RTL, model, graph, fixed-point behavior, golden vectors, metrics and scientific behavior were unchanged. The final ML test was not run.
