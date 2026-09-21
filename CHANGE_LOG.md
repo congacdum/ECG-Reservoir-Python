@@ -786,3 +786,26 @@ Push/PR checks are quick and deterministic. Exhaustive RTL verification remains 
 
 ### Next Recommended Step
 Run the new full RTL workflow once on GitHub and inspect its measured runtime/log artifact; do not weaken or skip any regression if it fails.
+
+## 2026-09-22
+
+### Goal
+
+Verify Icarus 12/13 compatibility for the recurrent RTL smoke path and pin production CI only if the version-specific failure is reproducible.
+
+### Evidence
+
+- Same source, runner and smoke workload: Icarus 12.0 compiled N=1/N=8 but VVP hung; the runner timed out during tb_reservoir_step.vvp golden simulation after 60 s.
+- Icarus 12 vvp -v showed two simulation time steps and 102,860 scheduler events in about 10 s without PASS.
+- Icarus 13.0 (v13_0, commit 30a7d1a11b7586aa0fc868e509f04f514effc0ad) passed N=1, N=8 and recurrent smoke with zero mismatch.
+
+### Changes
+
+- Pin .github/workflows/ci.yml and .github/workflows/rtl-full.yml to the exact Icarus 13.0 tag and commit, built from source.
+- Add simulator version logging for Python, OS, iverilog and vvp in the recurrent runner.
+- Add temporary manual 12/13 matrix workflow .github/workflows/rtl-simulator-compat.yml.
+- Record the compatibility evidence in README, PROJECT_KNOWLEDGE.md and BUILD_AUDIT.md.
+
+### Integrity
+
+RTL, model, graph, fixed-point formats, golden vectors, metrics and scientific behavior were unchanged. The final ML test was not run.

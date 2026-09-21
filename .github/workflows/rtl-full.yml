@@ -1,5 +1,9 @@
 name: RTL full regression
 
+env:
+  ICARUS_TAG: v13_0
+  ICARUS_COMMIT: 30a7d1a11b7586aa0fc868e509f04f514effc0ad
+
 on:
   workflow_dispatch:
   schedule:
@@ -19,12 +23,26 @@ jobs:
           cache-dependency-path: requirements-lock.txt
       - name: Install locked dependencies
         run: python -m pip install -r requirements-lock.txt
-      - name: Install Icarus Verilog
+      - name: Install Icarus Verilog 13.0
+        shell: bash
         run: |
+          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y iverilog
+          sudo apt-get install -y autoconf bison flex g++ gcc git gperf make
+          src_dir="$RUNNER_TEMP/iverilog-${{ env.ICARUS_TAG }}"
+          prefix="$RUNNER_TEMP/iverilog-install"
+          git clone --depth 1 --branch "${{ env.ICARUS_TAG }}" https://github.com/steveicarus/iverilog.git "$src_dir"
+          test "$(git -C "$src_dir" rev-parse HEAD)" = "${{ env.ICARUS_COMMIT }}"
+          cd "$src_dir"
+          autoconf
+          ./configure --prefix="$prefix"
+          make -j"$(nproc)"
+          make install
+          echo "$prefix/bin" >> "$GITHUB_PATH"
       - name: Verify simulator
-        run: iverilog -V
+        run: |
+          iverilog -V
+          vvp -V
       - name: Run exhaustive RTL regression
         shell: bash
         run: |

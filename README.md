@@ -181,6 +181,9 @@ Icarus Verilog 13.0 regression:
 | Expanded validation regression | 64 validation samples, 0 score mismatch, 0 class mismatch |
 
 8 mẫu là golden-vector bundle ban đầu; 64 mẫu là expanded validation regression sau đó. Latency đã xác minh là 1320 reservoir + 2 bridge + 64 readout = 1386 cycles/sample.
+### Tương thích simulator trong CI
+
+CI production dùng Icarus Verilog 13.0 từ tag v13_0, khóa tại commit 30a7d1a11b7586aa0fc868e509f04f514effc0ad. Cùng source và cùng smoke workload đã được kiểm tra A/B: Icarus 12.0 (Ubuntu apt) biên dịch được nhưng tb_reservoir_step.vvp bị kẹt ở golden simulation; Icarus 13.0 hoàn tất recurrent smoke với zero mismatch. Đây là khác biệt runtime của simulator, không phải thay đổi RTL, model, graph, fixed-point hay golden data. Workflow matrix tạm thời nằm tại .github/workflows/rtl-simulator-compat.yml.
 
 Chi tiết: [BUILD_AUDIT.md](outputs/fpga/reports/BUILD_AUDIT.md).
 
