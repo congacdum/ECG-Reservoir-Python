@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 import tempfile
@@ -39,7 +40,7 @@ def vector_to_bits(values: np.ndarray) -> int:
     return sum(int(value) << index for index, value in enumerate(values))
 
 
-def build_segments() -> tuple[list[str], dict[str, np.ndarray], list[int]]:
+def build_segments(*, smoke: bool = False) -> tuple[list[str], dict[str, np.ndarray], list[int]]:
     with np.load(VECTOR_DIR / "golden_vectors.npz", allow_pickle=False) as stored:
         real_input_q = stored["input_quantized"].astype(np.int32)
         real_ids = [str(value) for value in stored["sample_ids"]]
@@ -75,6 +76,8 @@ def build_segments() -> tuple[list[str], dict[str, np.ndarray], list[int]]:
     ] + real_ids
     # The first three segments deliberately exercise A, B, A reset isolation.
     sequence = [5, 9, 5, 0, 1, 2, 3, 4, 6, 7, 8, 10, 11, 12]
+    if smoke:
+        sequence = [5, 9, 5, 0, 1, 4]
     sequence_names = [names[index] for index in sequence]
 
     selected = {}
@@ -135,6 +138,10 @@ def compile_and_run(iverilog: str, vvp: str, checkpoints: int, segments: int) ->
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the reservoir-controller RTL regression")
+    parser.add_argument("--smoke", action="store_true", help="use deterministic directed and synthetic segments")
+    args = parser.parse_args()
+
     iverilog, vvp, simulator = find_simulator()
     if not iverilog or not vvp:
         print("SKIP: iverilog/vvp simulator not available; controller RTL was not executed")
@@ -143,7 +150,7 @@ def main() -> int:
     # Reuse the Phase 2 graph validation and memory representation.
     edge_rows, _ = load_edges()
     write_graph_memories(edge_rows)
-    names, vectors, _ = build_segments()
+    names, vectors, _ = build_segments(smoke=args.smoke)
     checkpoints = write_controller_memories(names, vectors)
     if int(np.max(vectors["spike_count_state"])) > 20:
         raise RuntimeError("Golden spike count exceeded the valid 20-timestep range")

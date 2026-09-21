@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 import tempfile
@@ -49,7 +50,7 @@ def pack_counts(counts: list[int]) -> int:
     return sum(int(value) << (index * COUNT_BITS) for index, value in enumerate(counts))
 
 
-def build_vectors() -> tuple[list[int], list[int], list[int], list[int], list[int], list[int]]:
+def build_vectors(*, smoke: bool = False) -> tuple[list[int], list[int], list[int], list[int], list[int], list[int]]:
     weights = [signed(int(token, 16), 8) for token in WEIGHT_FILE.read_text(encoding="ascii").split()]
     if len(weights) != NEURONS:
         raise RuntimeError(f"expected {NEURONS} readout weights, found {len(weights)}")
@@ -69,7 +70,9 @@ def build_vectors() -> tuple[list[int], list[int], list[int], list[int], list[in
     if len(golden_rows) != 8 or any(len(row) != NEURONS for row in golden_rows):
         raise RuntimeError("golden spike-count memory is not eight 64-neuron vectors")
 
-    vectors = [zeros, one_positive, one_negative, exact_zero, mixed, all_twenty] + golden_rows
+    vectors = [zeros, one_positive, one_negative, exact_zero, mixed, all_twenty]
+    if not smoke:
+        vectors += golden_rows
     packed = [pack_counts(vector) for vector in vectors]
     expected_weights = []
     expected_products = []
@@ -107,13 +110,17 @@ def compile_and_run(iverilog: str, vvp: str, vector_count: int) -> tuple[int, st
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the readout RTL regression")
+    parser.add_argument("--smoke", action="store_true", help="use directed readout vectors only")
+    args = parser.parse_args()
+
     iverilog, vvp, simulator = find_simulator()
     if not iverilog or not vvp:
         print("SKIP: iverilog/vvp simulator not available; readout RTL was not executed")
         return 2
 
     (packed, weights, expected_weights, expected_products, expected_before,
-     expected_after, expected_scores, expected_classes) = build_vectors()
+     expected_after, expected_scores, expected_classes) = build_vectors(smoke=args.smoke)
     MEM_DIR.mkdir(parents=True, exist_ok=True)
     write_mem(MEM_DIR / "readout_counts.mem", packed, NEURONS * COUNT_BITS)
     write_mem(MEM_DIR / "readout_weights.mem", expected_weights, 8)

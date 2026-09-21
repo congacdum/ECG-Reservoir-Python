@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 import tempfile
@@ -48,6 +49,10 @@ def pack_counts(values: list[int]) -> int:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the integrated classifier RTL regression")
+    parser.add_argument("--smoke", action="store_true", help="run the first four deterministic golden samples")
+    args = parser.parse_args()
+
     iverilog, vvp, simulator = find_simulator()
     if not iverilog or not vvp:
         print("SKIP: iverilog/vvp simulator not available; classifier RTL was not executed")
@@ -63,6 +68,11 @@ def main() -> int:
         raise RuntimeError("expected eight 64-neuron count vectors")
     scores = [signed(int(token, 16), 20) for token in score_tokens]
     classes = [int(token, 2) for token in class_tokens]
+    if args.smoke:
+        inputs = inputs[:4]
+        counts = counts[:4]
+        scores = scores[:4]
+        classes = classes[:4]
 
     MEM_DIR.mkdir(parents=True, exist_ok=True)
     write_mem(MEM_DIR / "classifier_inputs.mem", [value for row in inputs for value in row], 12)

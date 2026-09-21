@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import shutil
 import subprocess
 import sys
@@ -78,7 +79,7 @@ def directed_vectors() -> list[tuple[int, int, int, int, int, int]]:
     return result
 
 
-def prepare_memories() -> tuple[int, int]:
+def prepare_memories(*, smoke: bool = False) -> tuple[int, int]:
     import numpy as np
 
     with np.load(VECTOR_DIR / "golden_vectors.npz", allow_pickle=False) as vectors:
@@ -109,6 +110,15 @@ def prepare_memories() -> tuple[int, int]:
         expected_spike.append(spike)
         expected_reset.append(reset)
 
+    if smoke:
+        keep_golden = min(64, len(expected_before))
+        expected_before = expected_before[:keep_golden]
+        input_values = input_values[:keep_golden]
+        recurrent_values = recurrent_values[:keep_golden]
+        expected_after = expected_after[:keep_golden]
+        expected_spike = expected_spike[:keep_golden]
+        expected_reset = expected_reset[:keep_golden]
+
     MEM_DIR.mkdir(parents=True, exist_ok=True)
     write_mem(MEM_DIR / "lif_pe_expected_before.mem", expected_before, 16)
     write_mem(MEM_DIR / "lif_pe_input_contribution.mem", input_values, 32)
@@ -120,13 +130,17 @@ def prepare_memories() -> tuple[int, int]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the LIF RTL regression")
+    parser.add_argument("--smoke", action="store_true", help="use a small deterministic vector subset")
+    args = parser.parse_args()
+
     iverilog, vvp, simulator = find_simulator()
     if not iverilog or not vvp:
         print("SKIP: iverilog/vvp simulator not available; RTL was not executed")
         return 2
 
     print(f"Simulator: {simulator}; {simulator_version(iverilog)}")
-    num_golden, num_directed = prepare_memories()
+    num_golden, num_directed = prepare_memories(smoke=args.smoke)
     with tempfile.TemporaryDirectory(prefix="lif_pe_tb_") as temp_dir:
         sim_path = Path(temp_dir) / "tb_lif_pe.vvp"
         compile_cmd = [

@@ -740,3 +740,49 @@ The locked Python golden model, graph, parameters, RTL, and final-test artifacts
 
 ### Next Recommended Step
 Install/use the selected FPGA vendor synthesis flow, record measured reports, then decide whether RTL optimization is justified by a real bottleneck.
+
+## 2026-09-21 21:19
+
+### Goal
+Repair reproducible Python and RTL CI without changing scientific behavior, model artifacts or RTL functional behavior.
+
+### Root Cause
+- The previous workflow used Python 3.11 with dependency ranges only.
+- Brian2 2.7.1–2.9.0 contain an unguarded np.ndarray.ptp reference in fundamentalunits.py, which fails with NumPy 2.x.
+- The current verified compatibility pair is Brian2 2.10.1 with Python 3.13 and NumPy 2.2.6.
+
+### Changes
+- Added root requirements-lock.txt for the verified CI dependency set.
+- Added Python import/version smoke, pip check and explicit compileall steps.
+- Added deterministic --smoke modes to the five existing RTL runners; default full behavior is unchanged.
+- Added rtl/scripts/run_rtl_smoke.py for push/PR verification.
+- Split CI into Python verification plus RTL smoke, with path filters and timeouts.
+- Added .github/workflows/rtl-full.yml for manual/nightly exhaustive RTL regression and log artifact upload.
+- Updated README setup instructions with the CI lock command.
+
+### Verification
+- Clean Python 3.13 lock environment: import smoke passed, pip check passed, compileall passed, 30 passed.
+- RTL smoke: LIF, recurrent, controller, readout and classifier passed with zero mismatches.
+- No final ML test was run.
+
+### Scientific Behavior Changed
+No. Model equations, weights, graph, fixed-point formats, golden vectors, metrics, RTL functional behavior and latency were unchanged.
+
+### Files Changed
+- requirements-lock.txt
+- .github/workflows/ci.yml
+- .github/workflows/rtl-full.yml
+- rtl/scripts/run_lif_tb.py
+- rtl/scripts/run_recurrent_tb.py
+- rtl/scripts/run_controller_tb.py
+- rtl/scripts/run_readout_tb.py
+- rtl/scripts/run_classifier_tb.py
+- rtl/scripts/run_rtl_smoke.py
+- README.md
+- PROJECT_KNOWLEDGE.md
+
+### Current Project State
+Push/PR checks are quick and deterministic. Exhaustive RTL verification remains available through manual or scheduled full workflow.
+
+### Next Recommended Step
+Run the new full RTL workflow once on GitHub and inspect its measured runtime/log artifact; do not weaken or skip any regression if it fails.

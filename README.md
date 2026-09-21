@@ -1,4 +1,4 @@
-﻿# ECG Reservoir Computing → FPGA
+# ECG Reservoir Computing → FPGA
 
 Thiết kế Reservoir Computing / Liquid State Machine cho phân loại nhị phân các cửa sổ ECG dài 20 mẫu, theo hướng fixed-point và có thể ánh xạ sang RTL. Đây là dự án kỹ thuật/nghiên cứu mô phỏng; ý nghĩa y khoa của nhãn 0/1 chưa được xác nhận từ metadata dataset.
 
@@ -200,10 +200,28 @@ Chi tiết: [baseline_synthesis_summary.md](outputs/synthesis/baseline_synthesis
 
 ## Cài đặt và cách chạy
 
+Broad development dependencies:
+
 ~~~bash
 python -m pip install -r requirements.txt
+~~~
+
+Environment reproducible đã verify cho CI và verification:
+
+~~~bash
+python -m pip install -r requirements-lock.txt
+~~~
+
+Python checks:
+
+~~~bash
 python -m pytest -q
 python -m compileall .
+~~~
+
+RTL regression:
+
+~~~bash
 python rtl/scripts/run_lif_tb.py
 python rtl/scripts/run_recurrent_tb.py
 python rtl/scripts/run_controller_tb.py

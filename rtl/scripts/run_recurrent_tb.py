@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import csv
 import subprocess
 import sys
@@ -203,6 +204,10 @@ def compile_and_run(iverilog: str, vvp: str, top: str, parameter: str, sources: 
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Run the recurrent RTL regression")
+    parser.add_argument("--smoke", action="store_true", help="use a small deterministic reservoir-step subset")
+    args = parser.parse_args()
+
     iverilog, vvp, simulator = find_simulator()
     if not iverilog or not vvp:
         print("SKIP: iverilog/vvp simulator not available; recurrent RTL was not executed")
@@ -211,6 +216,8 @@ def main() -> int:
     edges, incoming = load_edges()
     unit_vectors = build_unit_vectors(incoming)
     step_vectors = build_reservoir_step_vectors(incoming)
+    if args.smoke:
+        step_vectors = step_vectors[:64] + step_vectors[-64:]
     MEM_DIR.mkdir(parents=True, exist_ok=True)
     write_graph_memories(edges)
     write_unit_memories(unit_vectors)

@@ -1,33 +1,70 @@
-﻿name: Project verification
+name: Project verification
 
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "tests/**"
+      - "rtl/**"
+      - "configs/**"
+      - "requirements*.txt"
+      - ".github/workflows/**"
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "tests/**"
+      - "rtl/**"
+      - "configs/**"
+      - "requirements*.txt"
+      - ".github/workflows/**"
 
 jobs:
   python:
+    name: Python verification
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: python -m pip install -r requirements.txt
-      - run: python -m compileall .
-      - run: python -m pytest -q
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements-lock.txt
+      - name: Dependency and import smoke check
+        run: >-
+          python -c "import sys, numpy, brian2; print(sys.version); print('NumPy', numpy.__version__);
+          print('Brian2', brian2.__version__)"
+      - name: Verify dependency consistency
+        run: python -m pip check
+      - name: Compile Python sources
+        run: python -m compileall src scripts tests rtl/scripts
+      - name: Run Python tests
+        run: python -m pytest -q
 
-  rtl:
+  rtl-smoke:
+    name: RTL smoke verification
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update
-      - run: sudo apt-get install -y iverilog
-      - run: python -m pip install -r requirements.txt
-      - run: python rtl/scripts/run_lif_tb.py
-      - run: python rtl/scripts/run_recurrent_tb.py
-      - run: python rtl/scripts/run_controller_tb.py
-      - run: python rtl/scripts/run_readout_tb.py
-      - run: python rtl/scripts/run_classifier_tb.py
-
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements-lock.txt
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+      - name: Verify simulator
+        run: iverilog -V
+      - name: Run deterministic RTL smoke suite
+        run: python rtl/scripts/run_rtl_smoke.py

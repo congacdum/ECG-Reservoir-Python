@@ -161,3 +161,9 @@ Readout integration, synthesis/place-and-route, resource/Fmax/power measurement,
 - Expanded RTL classifier verification: 64 validation-only samples, zero mismatches.
 - Python suite after analysis additions: 30 passed; compileall passed.
 - Vivado, Yosys and Verilator unavailable; synthesis and RTL optimization were not claimed.
+
+## CI repair audit — 2026-09-21
+- Root workflow dependency ranges were replaced for CI execution by requirements-lock.txt: Python 3.13, NumPy 2.2.6, Brian2 2.10.1 and pinned project test dependencies.
+- Push/PR RTL verification uses deterministic smoke subsets with the existing default full runners unchanged.
+- Local RTL smoke passed for LIF, recurrent, controller, readout and classifier with zero mismatches.
+- Full RTL regression remains available in .github/workflows/rtl-full.yml for manual/nightly execution.

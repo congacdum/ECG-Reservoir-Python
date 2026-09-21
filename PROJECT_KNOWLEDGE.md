@@ -272,3 +272,21 @@ Measured evidence:
 - Expanded integrated RTL verification passed 64 validation-only samples with zero score/class mismatches.
 
 These results are evidence reports, not a model-v2 selection. The locked architecture, seed, graph, golden model and RTL remain unchanged. Final test was not used.
+
+## 15. CI reproducibility audit — 2026-09-21
+
+The pre-fix workflow used Python 3.11 and unconstrained requirements such as numpy>=1.26 and brian2>=2.7. The reported CI traceback is consistent with Brian2 releases 2.7.1–2.9.0 accessing np.ndarray.ptp, an API removed from NumPy 2.x. Wheel source inspection confirmed that Brian2 2.10.1 adds the compatibility guard and requires Python >=3.12.
+
+The verified CI environment is now:
+
+- Python 3.13
+- NumPy 2.2.6
+- Brian2 2.10.1
+- pandas 2.3.2
+- SciPy 1.16.3
+- scikit-learn 1.7.2
+- pytest 9.1.1
+
+Clean-environment verification passed import smoke, pip check, compileall and 30 Python tests. No model, numerical result, RTL behavior, golden artifact or final test was changed or rerun.
+
+Push/PR CI runs Python verification and deterministic RTL smoke. Full RTL regression is preserved in a separate manual/nightly workflow.

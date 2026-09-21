@@ -1,0 +1,46 @@
+name: RTL full regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * 1"
+
+jobs:
+  rtl-full:
+    name: RTL full regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements-lock.txt
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+      - name: Verify simulator
+        run: iverilog -V
+      - name: Run exhaustive RTL regression
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            python rtl/scripts/run_lif_tb.py
+            python rtl/scripts/run_recurrent_tb.py
+            python rtl/scripts/run_controller_tb.py
+            python rtl/scripts/run_readout_tb.py
+            python rtl/scripts/run_classifier_tb.py
+            python rtl/scripts/run_validation_classifier_tb.py
+          } 2>&1 | tee rtl-full.log
+      - name: Upload RTL regression log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtl-full-regression-log
+          path: rtl-full.log
+          if-no-files-found: ignore
