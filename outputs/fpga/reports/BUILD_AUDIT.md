@@ -167,3 +167,15 @@ Readout integration, synthesis/place-and-route, resource/Fmax/power measurement,
 - Push/PR RTL verification uses deterministic smoke subsets with the existing default full runners unchanged.
 - Local RTL smoke passed for LIF, recurrent, controller, readout and classifier with zero mismatches.
 - Full RTL regression remains available in .github/workflows/rtl-full.yml for manual/nightly execution.
+
+## RTL smoke performance audit -- 2026-09-21
+
+- Root cause: run_recurrent_tb.py --smoke built all 10,240 reservoir-step vectors and only then discarded all but 128; the recurrent testbench itself was already parameterized, but the smoke reduction did not propagate through Python vector generation.
+- Baseline local recurrent smoke: 128 reservoir-step vectors, 896 comparisons, 0.592 s total (0.075 s generation, 0.093 s/0.091 s unit compile/simulation, 0.091 s/0.085 s step compile/simulation).
+- Smoke after fix: 8 deterministic reservoir-step cases, 56 comparisons; unit graph coverage remains 132 vectors / 396 exact comparisons.
+- Smoke coverage includes zero, sparse and dense previous-spike vectors, positive and negative recurrent sums, mixed signs, and fan-in 2..12.
+- After-fix local recurrent smoke: 0.530 s, zero mismatches.
+- After-fix complete local RTL smoke suite: 6.795 s, all runners passed.
+- Full recurrent regression remains unchanged: 10,240 vectors and 71,680 reservoir-step comparisons, zero mismatches; local runtime 3.730 s.
+- Added phase timing logs for generation, Icarus compile, vvp simulation, comparison, and per-runner smoke elapsed time.
+- RTL datapath, recurrent graph, golden vectors, model, expected outputs, and scientific behavior were not changed.

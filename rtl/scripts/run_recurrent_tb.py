@@ -6,6 +6,7 @@ import csv
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 import numpy as np
@@ -109,7 +110,96 @@ def build_unit_vectors(incoming):
     return vectors
 
 
-def build_reservoir_step_vectors(incoming):
+def _previous_spike_vector(threshold, sample: int, timestep: int) -> int:
+    if timestep == 0:
+        return 0
+    return sum(
+        int(threshold[sample, timestep - 1, source]) << source
+        for source in range(NEURONS)
+    )
+
+
+def select_smoke_cases(threshold, incoming) -> list[tuple[int, int, int]]:
+    candidates = []
+    for sample in range(threshold.shape[0]):
+        for timestep in range(1, threshold.shape[1]):
+            previous = _previous_spike_vector(threshold, sample, timestep)
+            population = previous.bit_count()
+            for destination in range(NEURONS):
+                active = [
+                    (source, sign)
+                    for source, sign in incoming[destination]
+                    if (previous >> source) & 1
+                ]
+                signs = {sign for _, sign in active}
+                candidates.append(
+                    (
+                        sample,
+                        timestep,
+                        destination,
+                        population,
+                        sum(sign for _, sign in active),
+                        len(active),
+                        len(incoming[destination]),
+                        int(1 in signs),
+                        int(-1 in signs),
+                    )
+                )
+
+    selected: list[tuple[int, int, int]] = []
+    seen = set()
+
+    def add(case: tuple[int, int, int]) -> None:
+        if case not in seen:
+            selected.append(case)
+            seen.add(case)
+
+    min_fanin_destination = min(incoming, key=lambda destination: len(incoming[destination]))
+    max_fanin_destination = max(incoming, key=lambda destination: len(incoming[destination]))
+    add((0, 0, min_fanin_destination))
+    add((0, 0, max_fanin_destination))
+
+    sparse = min(
+        (case for case in candidates if case[3] > 0),
+        key=lambda case: (case[3], -case[5], case[0], case[1], case[2]),
+    )
+    dense = max(
+        candidates,
+        key=lambda case: (case[3], case[5], case[6], -case[0], -case[1], -case[2]),
+    )
+    positive = max(
+        (case for case in candidates if case[4] > 0),
+        key=lambda case: (case[5], case[6], case[3], -case[0], -case[1], -case[2]),
+    )
+    negative = max(
+        (case for case in candidates if case[4] < 0),
+        key=lambda case: (case[5], case[6], case[3], -case[0], -case[1], -case[2]),
+    )
+    mixed = max(
+        (case for case in candidates if case[7] and case[8]),
+        key=lambda case: (case[5], case[6], case[3], -case[0], -case[1], -case[2]),
+    )
+    add(sparse[:3])
+    add(dense[:3])
+    add(positive[:3])
+    add(negative[:3])
+    add(mixed[:3])
+
+    for destination in (min_fanin_destination, max_fanin_destination):
+        destination_cases = [case for case in candidates if case[2] == destination]
+        add(max(destination_cases, key=lambda case: (case[3], case[5], -case[0], -case[1]))[:3])
+
+    for case in candidates:
+        add(case[:3])
+        if len(selected) >= 8:
+            break
+
+    if len(selected) < 8 or len(selected) > 32:
+        raise RuntimeError(f"Unexpected recurrent smoke case count: {len(selected)}")
+    return selected
+
+
+def build_reservoir_step_vectors(incoming, *, smoke: bool = False):
     with np.load(VECTOR_DIR / "golden_vectors.npz", allow_pickle=False) as vectors:
         threshold = vectors["threshold_result"]
         membrane_before = vectors["membrane_before"]
@@ -120,33 +210,43 @@ def build_reservoir_step_vectors(incoming):
         expected_raw_from_model = vectors["recurrent_contribution_raw"]
         expected_recurrent_from_model = vectors["recurrent_contribution"]
 
+    if smoke:
+        cases = select_smoke_cases(threshold, incoming)
+    else:
+        cases = (
+            (sample, timestep, destination)
+            for sample in range(threshold.shape[0])
+            for timestep in range(threshold.shape[1])
+            for destination in range(NEURONS)
+        )
+
+    previous_cache = {}
     result = []
-    for sample in range(threshold.shape[0]):
-        for timestep in range(threshold.shape[1]):
-            previous = 0
-            if timestep:
-                previous = sum(int(threshold[sample, timestep - 1, source]) << source for source in range(NEURONS))
-            for destination in range(NEURONS):
-                edge_sum, scaled_raw, scaled, edge_mask = recurrent_values(previous, destination, incoming)
-                if int(expected_raw_from_model[sample, timestep, destination]) != scaled_raw:
-                    raise RuntimeError("Derived recurrent raw value does not match the golden model")
-                if int(expected_recurrent_from_model[sample, timestep, destination]) != scaled:
-                    raise RuntimeError("Derived recurrent contribution does not match the golden model")
-                result.append(
-                    (
-                        previous,
-                        destination,
-                        int(membrane_before[sample, timestep, destination]),
-                        int(input_contribution[sample, timestep, destination]),
-                        edge_sum,
-                        scaled_raw,
-                        scaled,
-                        int(expected_after[sample, timestep, destination]),
-                        int(expected_spike[sample, timestep, destination]),
-                        int(expected_reset[sample, timestep, destination]),
-                        edge_mask,
-                    )
-                )
+    for sample, timestep, destination in cases:
+        case_key = (sample, timestep)
+        if case_key not in previous_cache:
+            previous_cache[case_key] = _previous_spike_vector(threshold, sample, timestep)
+        previous = previous_cache[case_key]
+        edge_sum, scaled_raw, scaled, edge_mask = recurrent_values(previous, destination, incoming)
+        if int(expected_raw_from_model[sample, timestep, destination]) != scaled_raw:
+            raise RuntimeError("Derived recurrent raw value does not match the golden model")
+        if int(expected_recurrent_from_model[sample, timestep, destination]) != scaled:
+            raise RuntimeError("Derived recurrent contribution does not match the golden model")
+        result.append(
+            (
+                previous,
+                destination,
+                int(membrane_before[sample, timestep, destination]),
+                int(input_contribution[sample, timestep, destination]),
+                edge_sum,
+                scaled_raw,
+                scaled,
+                int(expected_after[sample, timestep, destination]),
+                int(expected_spike[sample, timestep, destination]),
+                int(expected_reset[sample, timestep, destination]),
+                edge_mask,
+            )
+        )
     return result
 
 
@@ -183,7 +283,14 @@ def write_step_memories(vectors) -> None:
         write_mem(MEM_DIR / f"{name}.mem", [row[index] for row in vectors], bits)
 
 
-def compile_and_run(iverilog: str, vvp: str, top: str, parameter: str, sources: list[str], output_name: str) -> tuple[int, str]:
+def compile_and_run(
+    iverilog: str,
+    vvp: str,
+    top: str,
+    parameter: str,
+    sources: list[str],
+    output_name: str,
+) -> tuple[int, str, float, float]:
     with tempfile.TemporaryDirectory(prefix="recurrent_tb_") as temp_dir:
         sim_path = Path(temp_dir) / output_name
         compile_cmd = [
@@ -196,14 +303,19 @@ def compile_and_run(iverilog: str, vvp: str, top: str, parameter: str, sources: 
             str(sim_path),
             *sources,
         ]
+        compile_started = time.perf_counter()
         compiled = subprocess.run(compile_cmd, cwd=ROOT, text=True, capture_output=True)
+        compile_seconds = time.perf_counter() - compile_started
         if compiled.returncode != 0:
-            return compiled.returncode, compiled.stdout + compiled.stderr
+            return compiled.returncode, compiled.stdout + compiled.stderr, compile_seconds, 0.0
+        simulation_started = time.perf_counter()
         executed = subprocess.run([vvp, str(sim_path)], cwd=ROOT, text=True, capture_output=True)
-        return executed.returncode, executed.stdout + executed.stderr
+        simulation_seconds = time.perf_counter() - simulation_started
+        return executed.returncode, executed.stdout + executed.stderr, compile_seconds, simulation_seconds
 
 
 def main() -> int:
+    total_started = time.perf_counter()
     parser = argparse.ArgumentParser(description="Run the recurrent RTL regression")
     parser.add_argument("--smoke", action="store_true", help="use a small deterministic reservoir-step subset")
     args = parser.parse_args()
@@ -213,20 +325,27 @@ def main() -> int:
         print("SKIP: iverilog/vvp simulator not available; recurrent RTL was not executed")
         return 2
 
+    mode = "smoke" if args.smoke else "full"
+    print(f"[recurrent] mode={mode}", flush=True)
+    generation_started = time.perf_counter()
     edges, incoming = load_edges()
     unit_vectors = build_unit_vectors(incoming)
-    step_vectors = build_reservoir_step_vectors(incoming)
-    if args.smoke:
-        step_vectors = step_vectors[:64] + step_vectors[-64:]
+    step_vectors = build_reservoir_step_vectors(incoming, smoke=args.smoke)
     MEM_DIR.mkdir(parents=True, exist_ok=True)
     write_graph_memories(edges)
     write_unit_memories(unit_vectors)
     write_step_memories(step_vectors)
+    generation_seconds = time.perf_counter() - generation_started
 
     print(f"Simulator: {simulator}; {simulator_version(iverilog)}")
     print(f"Graph edges: {len(edges)}; unit vectors: {len(unit_vectors)}; golden neuron vectors: {len(step_vectors)}")
+    if args.smoke:
+        print(f"[recurrent] smoke cases={len(step_vectors)}", flush=True)
+    print(f"[recurrent] vectors={len(step_vectors)}", flush=True)
+    print(f"[recurrent] expected comparisons={len(step_vectors) * 7}", flush=True)
+    print(f"[recurrent] generation finished in {generation_seconds:.3f}s", flush=True)
 
-    unit_code, unit_output = compile_and_run(
+    unit_code, unit_output, unit_compile_seconds, unit_simulation_seconds = compile_and_run(
         iverilog,
         vvp,
         "tb_sparse_recurrent_engine",
@@ -238,11 +357,15 @@ def main() -> int:
         ],
         "tb_sparse_recurrent_engine.vvp",
     )
+    print(f"[recurrent] unit compile finished in {unit_compile_seconds:.3f}s", flush=True)
+    print(f"[recurrent] unit simulation finished in {unit_simulation_seconds:.3f}s", flush=True)
+    unit_compare_started = time.perf_counter()
     print(unit_output, end="")
     if unit_code != 0 or "PASS:" not in unit_output:
         return unit_code or 1
+    print(f"[recurrent] unit comparison finished in {time.perf_counter() - unit_compare_started:.3f}s", flush=True)
 
-    step_code, step_output = compile_and_run(
+    step_code, step_output, step_compile_seconds, step_simulation_seconds = compile_and_run(
         iverilog,
         vvp,
         "tb_reservoir_step",
@@ -256,9 +379,13 @@ def main() -> int:
         ],
         "tb_reservoir_step.vvp",
     )
+    print(f"[recurrent] compile finished in {step_compile_seconds:.3f}s", flush=True)
+    print(f"[recurrent] simulation finished in {step_simulation_seconds:.3f}s", flush=True)
+    comparison_started = time.perf_counter()
     print(step_output, end="")
     if step_code != 0 or "PASS:" not in step_output:
         return step_code or 1
+    print(f"[recurrent] comparison finished in {time.perf_counter() - comparison_started:.3f}s", flush=True)
 
     print(
         f"Recurrent comparisons: {len(unit_vectors) * 3} unit exact; "
@@ -266,6 +393,7 @@ def main() -> int:
     )
     print(f"Reservoir-step comparisons: {len(step_vectors) * 7} exact")
     print("Mismatches: 0")
+    print(f"[recurrent] total runtime {time.perf_counter() - total_started:.3f}s", flush=True)
     return 0
 
 
