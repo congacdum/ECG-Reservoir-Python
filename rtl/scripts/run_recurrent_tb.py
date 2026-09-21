@@ -290,6 +290,7 @@ def compile_and_run(
     parameter: str,
     sources: list[str],
     output_name: str,
+    phase: str,
 ) -> tuple[int, str, float, float]:
     with tempfile.TemporaryDirectory(prefix="recurrent_tb_") as temp_dir:
         sim_path = Path(temp_dir) / output_name
@@ -303,14 +304,18 @@ def compile_and_run(
             str(sim_path),
             *sources,
         ]
+        print(f"[recurrent] {phase} compile start", flush=True)
         compile_started = time.perf_counter()
         compiled = subprocess.run(compile_cmd, cwd=ROOT, text=True, capture_output=True)
         compile_seconds = time.perf_counter() - compile_started
+        print(f"[recurrent] {phase} compile finished in {compile_seconds:.3f}s", flush=True)
         if compiled.returncode != 0:
             return compiled.returncode, compiled.stdout + compiled.stderr, compile_seconds, 0.0
+        print(f"[recurrent] {phase} simulation start", flush=True)
         simulation_started = time.perf_counter()
         executed = subprocess.run([vvp, str(sim_path)], cwd=ROOT, text=True, capture_output=True)
         simulation_seconds = time.perf_counter() - simulation_started
+        print(f"[recurrent] {phase} simulation finished in {simulation_seconds:.3f}s", flush=True)
         return executed.returncode, executed.stdout + executed.stderr, compile_seconds, simulation_seconds
 
 
@@ -330,20 +335,26 @@ def main() -> int:
     generation_started = time.perf_counter()
     edges, incoming = load_edges()
     unit_vectors = build_unit_vectors(incoming)
-    step_vectors = build_reservoir_step_vectors(incoming, smoke=args.smoke)
     MEM_DIR.mkdir(parents=True, exist_ok=True)
     write_graph_memories(edges)
     write_unit_memories(unit_vectors)
-    write_step_memories(step_vectors)
-    generation_seconds = time.perf_counter() - generation_started
+    unit_generation_seconds = time.perf_counter() - generation_started
 
     print(f"Simulator: {simulator}; {simulator_version(iverilog)}")
-    print(f"Graph edges: {len(edges)}; unit vectors: {len(unit_vectors)}; golden neuron vectors: {len(step_vectors)}")
+    print(f"Graph edges: {len(edges)}; unit vectors: {len(unit_vectors)}")
+    print(f"[recurrent] unit generation finished in {unit_generation_seconds:.3f}s", flush=True)
+
+    print("[recurrent] golden generation start", flush=True)
+    golden_generation_started = time.perf_counter()
+    step_vectors = build_reservoir_step_vectors(incoming, smoke=args.smoke)
+    write_step_memories(step_vectors)
+    golden_generation_seconds = time.perf_counter() - golden_generation_started
+    print(f"[recurrent] golden vectors={len(step_vectors)}", flush=True)
     if args.smoke:
         print(f"[recurrent] smoke cases={len(step_vectors)}", flush=True)
     print(f"[recurrent] vectors={len(step_vectors)}", flush=True)
     print(f"[recurrent] expected comparisons={len(step_vectors) * 7}", flush=True)
-    print(f"[recurrent] generation finished in {generation_seconds:.3f}s", flush=True)
+    print(f"[recurrent] golden generation finished in {golden_generation_seconds:.3f}s", flush=True)
 
     unit_code, unit_output, unit_compile_seconds, unit_simulation_seconds = compile_and_run(
         iverilog,
@@ -356,14 +367,15 @@ def main() -> int:
             "rtl/tb/tb_sparse_recurrent_engine.sv",
         ],
         "tb_sparse_recurrent_engine.vvp",
+        "unit",
     )
-    print(f"[recurrent] unit compile finished in {unit_compile_seconds:.3f}s", flush=True)
-    print(f"[recurrent] unit simulation finished in {unit_simulation_seconds:.3f}s", flush=True)
     unit_compare_started = time.perf_counter()
     print(unit_output, end="")
     if unit_code != 0 or "PASS:" not in unit_output:
         return unit_code or 1
     print(f"[recurrent] unit comparison finished in {time.perf_counter() - unit_compare_started:.3f}s", flush=True)
+    print("[recurrent] golden phase starting", flush=True)
+    print(f"[recurrent] golden vectors={len(step_vectors)}", flush=True)
 
     step_code, step_output, step_compile_seconds, step_simulation_seconds = compile_and_run(
         iverilog,
@@ -378,14 +390,18 @@ def main() -> int:
             "rtl/tb/tb_reservoir_step.sv",
         ],
         "tb_reservoir_step.vvp",
+        "golden",
     )
-    print(f"[recurrent] compile finished in {step_compile_seconds:.3f}s", flush=True)
-    print(f"[recurrent] simulation finished in {step_simulation_seconds:.3f}s", flush=True)
+    print("[recurrent] golden parsing start", flush=True)
     comparison_started = time.perf_counter()
     print(step_output, end="")
-    if step_code != 0 or "PASS:" not in step_output:
+    parse_seconds = time.perf_counter() - comparison_started
+    print(f"[recurrent] golden parsing finished in {parse_seconds:.3f}s", flush=True)
+    golden_compare_started = time.perf_counter()
+    golden_ok = step_code == 0 and "PASS:" in step_output
+    print(f"[recurrent] golden comparison finished in {time.perf_counter() - golden_compare_started:.3f}s", flush=True)
+    if not golden_ok:
         return step_code or 1
-    print(f"[recurrent] comparison finished in {time.perf_counter() - comparison_started:.3f}s", flush=True)
 
     print(
         f"Recurrent comparisons: {len(unit_vectors) * 3} unit exact; "
